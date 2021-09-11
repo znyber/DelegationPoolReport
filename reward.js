@@ -94,8 +94,8 @@ async function createExcel() {
 			let menungso = await addr.state;
 			let paddress = await addr.address;
 			let d_age = await check_age(paddress);
+			let cellIndex = addr_index + 4
 			if (menungso == "Human" || menungso == "Verified") {
-				let cellIndex = addr_index + 4
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
 			worksheet.cell(cellIndex, 2).string(`${menungso}`);
 			worksheet.cell(cellIndex, 3).string(`${d_age}`);
@@ -178,10 +178,11 @@ async function createExcel() {
 			let menungso = await addr.state;
 			let paddress = await addr.address;
 			let d_age = await check_age(paddress);
+			let cellIndex = addr_index + 4
 			if (menungso == "Human" || menungso == "Verified") {
-				let cellIndex = addr_index + 4
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
 			worksheet.cell(cellIndex, 2).string(`${menungso}`);
+			worksheet.cell(cellIndex, 3).string(`${d_age}`);
 			let stake_all = 0;
 			let stake_IC = 0;
 			console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);

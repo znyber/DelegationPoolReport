@@ -1,5 +1,5 @@
 # DelegationPoolReport
-Install all dependencies ``npm i`` 
+Install all dependencies ``npm i`` <br />
 Edit config.json to Address pool <br />
 ```
 "pool_pubaddress": ["<address -here>"]

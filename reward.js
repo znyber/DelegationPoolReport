@@ -40,18 +40,18 @@ async function pool_reward(paddress, epoch) {
     try {
         let response = await axios.get(`http://api.idena.io/api/Epoch/${epoch}/Identity/${paddress}/Rewards`);
         if (response.data.result) {
-            return response.data.result
+			return response.data.result
         } else {
-            return {
+            return [{
 			"type": "Validation",
 			"stake": 0
-			}
+			}]
 		}
     } catch (error) {
 		console.log("break");
         return {
 			"type": "Validation",
-			"stake": 0
+			"stake": 0 
 		}
     }
 }
@@ -103,6 +103,7 @@ async function createExcel() {
 			let stake_IC = 0;
 			console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
 			let d_reward = await pool_reward(paddress, epoch);
+			//console.log(d_reward);
 				d_reward.forEach(async (reward, reward_index) => {
 					stake_all += parseFloat(reward.stake);
 					if (reward.type == "Invitations") {
@@ -143,6 +144,55 @@ async function createExcel() {
 				});
 				worksheet.cell(cellIndex, 10).string((parseFloat((stake_IC / 20 ) * 80) * 80 / 100).toFixed(2));
 				worksheet.cell(cellIndex, 11).string((parseFloat((stake_all / 20 ) * 80) * 80 /100).toFixed(2));
+			} else if (menungso == "Newbie") {
+			worksheet.cell(cellIndex, 1).string(`${paddress}`);
+			worksheet.cell(cellIndex, 2).string(`${menungso}`);
+			worksheet.cell(cellIndex, 3).string(`${d_age}`);
+			let stake_all = 0;
+			let stake_IC = 0;
+			console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
+			let d_reward = await pool_reward(paddress, epoch);
+			//console.log(d_reward);
+				d_reward.forEach(async (reward, reward_index) => {
+					stake_all += parseFloat(reward.stake);
+					if (reward.type == "Invitations") {
+						stake_IC += parseFloat(reward.stake);
+					} else if (reward.type == "Invitations2") {
+						stake_IC += parseFloat(reward.stake);
+					} else if (reward.type == "Invitations3") {
+						stake_IC += parseFloat(reward.stake);
+					} else {
+//						console.log("");
+					}
+				setTimeout(async function () {
+					let stake = await parseFloat(reward.stake);
+					let typeV = await reward.type;
+					if (typeV == "Validation") {
+					worksheet.cell(cellIndex, 4).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Flips") {
+					worksheet.cell(cellIndex, 5).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Reports") {
+					worksheet.cell(cellIndex, 6).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Invitations") {
+					worksheet.cell(cellIndex, 7).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Invitations2") {
+					worksheet.cell(cellIndex, 8).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Invitations3") {
+					worksheet.cell(cellIndex, 9).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else {
+//					console.log(`${typeV} - no reward`);
+					}
+					workbook.write('excel3.xlsx');
+					}, 500 * reward_index);
+				});
+				worksheet.cell(cellIndex, 10).string((parseFloat((stake_IC / 80 ) * 20) * 20 / 100).toFixed(2));
+				worksheet.cell(cellIndex, 11).string((parseFloat((stake_all / 80 ) * 20) * 20 /100).toFixed(2));
 			} else {
 			console.log(`${menungso} - ${paddress} no count`);
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
@@ -227,6 +277,55 @@ async function createExcel() {
 				});
 				worksheet.cell(cellIndex, 10).string((parseFloat(stake_IC / 20 ) * 80).toFixed(2));
 				worksheet.cell(cellIndex, 11).string((parseFloat(stake_all / 20 ) * 80).toFixed(2));
+			} else if (menungso == "Newbie") {
+			worksheet.cell(cellIndex, 1).string(`${paddress}`);
+			worksheet.cell(cellIndex, 2).string(`${menungso}`);
+			worksheet.cell(cellIndex, 3).string(`${d_age}`);
+			let stake_all = 0;
+			let stake_IC = 0;
+			console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
+			let d_reward = await pool_reward(paddress, epoch);
+			//console.log(d_reward);
+				d_reward.forEach(async (reward, reward_index) => {
+					stake_all += parseFloat(reward.stake);
+					if (reward.type == "Invitations") {
+						stake_IC += parseFloat(reward.stake);
+					} else if (reward.type == "Invitations2") {
+						stake_IC += parseFloat(reward.stake);
+					} else if (reward.type == "Invitations3") {
+						stake_IC += parseFloat(reward.stake);
+					} else {
+//						console.log("");
+					}
+				setTimeout(async function () {
+					let stake = await parseFloat(reward.stake);
+					let typeV = await reward.type;
+					if (typeV == "Validation") {
+					worksheet.cell(cellIndex, 4).string((parseFloat(stake / 80) * 20).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Flips") {
+					worksheet.cell(cellIndex, 5).string((parseFloat(stake / 80) * 20).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Reports") {
+					worksheet.cell(cellIndex, 6).string((parseFloat(stake / 80) * 20).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Invitations") {
+					worksheet.cell(cellIndex, 7).string((parseFloat(stake / 80) * 20).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Invitations2") {
+					worksheet.cell(cellIndex, 8).string((parseFloat(stake / 80) * 20).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else if (typeV == "Invitations3") {
+					worksheet.cell(cellIndex, 9).string((parseFloat(stake / 80) * 20).toFixed(2));
+//					console.log(`######################################${typeV} - stake ${stake}`);
+					} else {
+//					console.log(`${typeV} - no reward`);
+					}
+					workbook.write('excel3.xlsx');
+					}, 500 * reward_index);
+				});
+				worksheet.cell(cellIndex, 10).string((parseFloat(stake_IC / 80) * 20).toFixed(2));
+				worksheet.cell(cellIndex, 11).string((parseFloat(stake_all / 80 ) * 20).toFixed(2));
 			} else {
 			console.log(`${menungso} - ${paddress} no count`);
 			}

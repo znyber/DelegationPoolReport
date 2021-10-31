@@ -4,7 +4,13 @@ Edit config.json to Address pool <br />
 ```
 "pool_pubaddress": ["<address -here>"]
 ```
-Desclaimer <br />
+# Auto send IDNA to Address Delegator
+Edit config.json to enable auto send, by default auto send is off <br />
+```
+"stats": true, 
+"api": "<yourapinode>"
+```
+# Desclaimer <br />
 if you pool state Human or Verif <br />
 balance report to address delegation reduce 20% <br />
 if pool Undifined/not validated, no reduce balance report <br />

@@ -28,7 +28,7 @@ async function check_age(address) {
 }
 async function pool_size() {
     try {
-        let response = await axios.get(`https://api.idena.org/api/pool/${pool_address}/delegators?limit=1`);
+        let response = await axios.get(`https://api.idena.org/api/pool/${pool_address}/delegators?limit=100`);
         if (response.data.result) {
             return response.data.result
         } else {

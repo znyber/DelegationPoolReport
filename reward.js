@@ -2,6 +2,8 @@ const axios = require('axios').default;
 const config = require('./config.json');
 let excel = require('excel4node');
 const pool_address = config.pool_pubaddress
+const send_stats = config.stats
+const apimu = config.api
 
 async function get_epoch() {
     try {
@@ -26,7 +28,7 @@ async function check_age(address) {
 }
 async function pool_size() {
     try {
-        let response = await axios.get(`https://api.idena.org/api/pool/${pool_address}/delegators?limit=25`);
+        let response = await axios.get(`https://api.idena.org/api/pool/${pool_address}/delegators?limit=1`);
         if (response.data.result) {
             return response.data.result
         } else {
@@ -53,6 +55,33 @@ async function pool_reward(paddress, epoch) {
 			"type": "Validation",
 			"stake": 0 
 		}
+    }
+}
+async function send_gate(padress, stake_send, apimuk, paddress) {
+    try {
+let response = await axios({
+method: 'post',
+url: 'http://127.0.0.1:9009/',
+data: {
+method: 'dna_sendTransaction',
+params: [{
+        from: `${padress}`,
+        to: `${paddress}`,
+        amount: `${stake_send}`
+        }],
+id: 4,
+key: `${apimuk}`
+},
+headers: { 'content-type': 'application/json' }
+})
+if (response) {
+            return response.data.result
+        } else {
+            return null
+                }
+
+    } catch (error) {
+        return null
     }
 }
 async function createExcel() {
@@ -88,6 +117,7 @@ async function createExcel() {
 	worksheet.cell(3, 9).string("80%_rIC3_delegation");
 	worksheet.cell(3, 10).string("80%_rIC_all_delegation");
 	worksheet.cell(3, 11).string("80%_reward_all_delegation");
+	worksheet.cell(3, 12).string("80%_sendTX");
         if (d_pool) {
 		d_pool.forEach(async (addr, addr_index) => {
 		setTimeout(async function () {
@@ -144,6 +174,16 @@ async function createExcel() {
 				});
 				worksheet.cell(cellIndex, 10).string((parseFloat((stake_IC / 20 ) * 80) * 80 / 100).toFixed(2));
 				worksheet.cell(cellIndex, 11).string((parseFloat((stake_all / 20 ) * 80) * 80 /100).toFixed(2));
+				if (send_stats == true) {
+					let stake_send = ((parseFloat((stake_all / 20 ) * 80) * 80 /100).toFixed(2));
+					let padress = pool_address
+					let apimuk = apimu
+					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
+					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
+					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
+				} else {
+					console.log("-----------");
+				}
 			} else if (menungso == "Newbie") {
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
 			worksheet.cell(cellIndex, 2).string(`${menungso}`);
@@ -168,22 +208,22 @@ async function createExcel() {
 					let stake = await parseFloat(reward.stake);
 					let typeV = await reward.type;
 					if (typeV == "Validation") {
-					worksheet.cell(cellIndex, 4).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+					worksheet.cell(cellIndex, 4).string((parseFloat((stake / 80 ) * 20) * 90 / 100).toFixed(2));
 //					console.log(`######################################${typeV} - stake ${stake}`);
 					} else if (typeV == "Flips") {
-					worksheet.cell(cellIndex, 5).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+					worksheet.cell(cellIndex, 5).string((parseFloat((stake / 80 ) * 20) * 90 / 100).toFixed(2));
 //					console.log(`######################################${typeV} - stake ${stake}`);
 					} else if (typeV == "Reports") {
-					worksheet.cell(cellIndex, 6).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+					worksheet.cell(cellIndex, 6).string((parseFloat((stake / 80 ) * 20) * 90 / 100).toFixed(2));
 //					console.log(`######################################${typeV} - stake ${stake}`);
 					} else if (typeV == "Invitations") {
-					worksheet.cell(cellIndex, 7).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+					worksheet.cell(cellIndex, 7).string((parseFloat((stake / 80 ) * 20) * 90 / 100).toFixed(2));
 //					console.log(`######################################${typeV} - stake ${stake}`);
 					} else if (typeV == "Invitations2") {
-					worksheet.cell(cellIndex, 8).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+					worksheet.cell(cellIndex, 8).string((parseFloat((stake / 80 ) * 20) * 90 / 100).toFixed(2));
 //					console.log(`######################################${typeV} - stake ${stake}`);
 					} else if (typeV == "Invitations3") {
-					worksheet.cell(cellIndex, 9).string((parseFloat((stake / 80 ) * 20) * 20 / 100).toFixed(2));
+					worksheet.cell(cellIndex, 9).string((parseFloat((stake / 80 ) * 20) * 90 / 100).toFixed(2));
 //					console.log(`######################################${typeV} - stake ${stake}`);
 					} else {
 //					console.log(`${typeV} - no reward`);
@@ -191,8 +231,19 @@ async function createExcel() {
 					workbook.write('excel3.xlsx');
 					}, 500 * reward_index);
 				});
-				worksheet.cell(cellIndex, 10).string((parseFloat((stake_IC / 80 ) * 20) * 20 / 100).toFixed(2));
-				worksheet.cell(cellIndex, 11).string((parseFloat((stake_all / 80 ) * 20) * 20 /100).toFixed(2));
+				worksheet.cell(cellIndex, 10).string((parseFloat((stake_IC / 80 ) * 20) * 90 / 100).toFixed(2));
+				worksheet.cell(cellIndex, 11).string((parseFloat((stake_all / 80 ) * 20) * 90 /100).toFixed(2));
+				
+				if (send_stats == true) {
+					let stake_send = ((parseFloat((stake_all / 80 ) * 20) * 90 /100).toFixed(2));
+					let padress = pool_address
+					let apimuk = apimu
+					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
+					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
+					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
+				} else {
+					console.log("-----------");
+				}
 			} else {
 			console.log(`${menungso} - ${paddress} no count`);
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
@@ -222,6 +273,7 @@ async function createExcel() {
 	worksheet.cell(3, 9).string("rIC3_delegation");
 	worksheet.cell(3, 10).string("rIC_all_delegation");
 	worksheet.cell(3, 11).string("reward_all_delegation");
+	worksheet.cell(3, 12).string("SendTX");
         if (d_pool) {
 		d_pool.forEach(async (addr, addr_index) => {
 		setTimeout(async function () {
@@ -277,6 +329,17 @@ async function createExcel() {
 				});
 				worksheet.cell(cellIndex, 10).string((parseFloat(stake_IC / 20 ) * 80).toFixed(2));
 				worksheet.cell(cellIndex, 11).string((parseFloat(stake_all / 20 ) * 80).toFixed(2));
+				
+				if (send_stats == true) {
+					let stake_send = ((parseFloat(stake_all / 20 ) * 80).toFixed(2));
+					let padress = pool_address
+					let apimuk = apimu
+					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
+					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
+					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
+				} else {
+					console.log("-----------");
+				}
 			} else if (menungso == "Newbie") {
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
 			worksheet.cell(cellIndex, 2).string(`${menungso}`);
@@ -326,6 +389,17 @@ async function createExcel() {
 				});
 				worksheet.cell(cellIndex, 10).string((parseFloat(stake_IC / 80) * 20).toFixed(2));
 				worksheet.cell(cellIndex, 11).string((parseFloat(stake_all / 80 ) * 20).toFixed(2));
+				
+				if (send_stats == true) {
+					let stake_send = ((parseFloat(stake_all / 80 ) * 20).toFixed(2));
+					let padress = pool_address
+					let apimuk = apimu
+					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
+					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
+					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
+				} else {
+					console.log("-----------");
+				}
 			} else {
 			console.log(`${menungso} - ${paddress} no count`);
 			}

@@ -1,3 +1,5 @@
 {
-	"pool_pubaddress": ["<address -here>"]
+	"pool_pubaddress": ["<address -here>"],
+	"stats": false,
+	"api": "<yourapi>"
 }

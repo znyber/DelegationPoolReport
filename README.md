@@ -2,12 +2,14 @@
 Install all dependencies ``npm i`` <br />
 Edit config.json to Address pool <br />
 ```
-"pool_pubaddress": ["<address -here>"]
+"pool_pubaddress": ["<address-here>"]
 ```
 # Auto send IDNA to Address Delegator
 Edit config.json to enable auto send, by default auto send is off <br />
 ```
 "stats": true, 
+"node": "127.0.0.1",
+"port": "9009",
 "api": "<yourapinode>"
 ```
 # Desclaimer <br />

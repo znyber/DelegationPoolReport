@@ -4,6 +4,8 @@ let excel = require('excel4node');
 const pool_address = config.pool_pubaddress
 const send_stats = config.stats
 const apimu = config.api
+const node = config.node
+const port = config.port
 
 async function get_epoch() {
     try {
@@ -38,6 +40,25 @@ async function pool_size() {
         return null
     }
 }
+async function pool_unlock(paddress) {
+    try {
+        let response = await axios.get(`http://api.idena.io/api/address/${paddress}/balance/changes?limit=10`);
+        if (response.data.result) {
+            return response.data.result
+        } else {
+            return [{
+                "reason": "EpochReward",
+                "stakeOld": 0
+            }]
+        }
+    } catch (error) {
+        console.log("break");
+        return {
+            "reason": "EpochReward",
+            "stakeOld": 0
+        }
+    }
+}
 async function pool_reward(paddress, epoch) {
     try {
         let response = await axios.get(`http://api.idena.io/api/Epoch/${epoch}/Identity/${paddress}/Rewards`);
@@ -61,7 +82,7 @@ async function send_gate(padress, stake_send, apimuk, paddress) {
     try {
 let response = await axios({
 method: 'post',
-url: 'http://127.0.0.1:9009/',
+url: `http://${node}:${port}/`,
 data: {
 method: 'dna_sendTransaction',
 params: [{
@@ -86,7 +107,7 @@ if (response) {
 }
 async function createExcel() {
 	let epoch = await get_epoch();
-	let response_pstat = await axios.get(`http://api.idena.io/api/Epoch/${epoch}/Identity/${pool_address}`);
+    let response_pstat = await axios.get(`http://api.idena.io/api/Epoch/${epoch}/Identity/${pool_address}`);
 	let state = await response_pstat.data.result.state;
 	let totalValidationReward = await response_pstat.data.result.totalValidationReward;
 	let pool_age = await check_age(pool_address);
@@ -117,13 +138,19 @@ async function createExcel() {
 	worksheet.cell(3, 9).string("80%_rIC3_delegation");
 	worksheet.cell(3, 10).string("80%_rIC_all_delegation");
 	worksheet.cell(3, 11).string("80%_reward_all_delegation");
-	worksheet.cell(3, 12).string("80%_sendTX");
+    worksheet.cell(3, 12).string("80%_unlock_balance");
+	worksheet.cell(3, 13).string("80%_sendTX");
+    worksheet.cell(3, 14).string("80%_send_UnlockTX");
         if (d_pool) {
 		d_pool.forEach(async (addr, addr_index) => {
 		setTimeout(async function () {
+           
 			let menungso = await addr.state;
 			let paddress = await addr.address;
-			let d_age = await check_age(paddress);
+            let d_age = await check_age(paddress);
+            
+            
+            //let d_unlock = await response_unlock.data.result;
 			let cellIndex = addr_index + 4
 			if (menungso == "Human" || menungso == "Verified") {
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
@@ -131,7 +158,7 @@ async function createExcel() {
 			worksheet.cell(cellIndex, 3).string(`${d_age}`);
 			let stake_all = 0;
 			let stake_IC = 0;
-			console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
+			
 			let d_reward = await pool_reward(paddress, epoch);
 			//console.log(d_reward);
 				d_reward.forEach(async (reward, reward_index) => {
@@ -173,16 +200,33 @@ async function createExcel() {
 					}, 500 * reward_index);
 				});
 				worksheet.cell(cellIndex, 10).string((parseFloat((stake_IC / 20 ) * 80) * 80 / 100).toFixed(2));
-				worksheet.cell(cellIndex, 11).string((parseFloat((stake_all / 20 ) * 80) * 80 /100).toFixed(2));
-				if (send_stats == true) {
+                worksheet.cell(cellIndex, 11).string((parseFloat((stake_all / 20) * 80) * 80 / 100).toFixed(2));
+                if (send_stats == true) {
+                    let d_unlock = await pool_unlock(paddress);
+                    d_unlock.forEach(async (reason, reason_index) => {
+                        setTimeout(async function () {
+                            if (reason.reason == "VerifiedStake") {
+                                stake_unlock = await parseFloat(reason.stakeNew);
+                                let stake_send = ((parseFloat((stake_unlock / 22) * 82) * 79 / 100).toFixed(2));
+                                let padress = pool_address
+                                let apimuk = apimu
+                                let reqUNpass = await send_gate(padress, stake_send, apimuk, paddress);
+                                worksheet.cell(cellIndex, 12).string(`${stake_send}`);
+                                worksheet.cell(cellIndex, 14).string(`${reqUNpass}`);
+                                console.log(`reason ${reason.reason} - stake ${stake_unlock} \n${paddress} - unlock balance ${stake_send} IDNA \nTX = ${reqUNpass}`);
+                            } else {
+                            }
+                            workbook.write('excel3.xlsx');
+                        }, 2500 * reason_index);
+                    }); 
 					let stake_send = ((parseFloat((stake_all / 20 ) * 80) * 80 /100).toFixed(2));
 					let padress = pool_address
 					let apimuk = apimu
 					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
-					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
-					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
-				} else {
-					console.log("-----------");
+                    worksheet.cell(cellIndex, 13).string(`${reqpass}`);
+                    console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}\nSending ${stake_send} IDNA - \nTX = ${reqpass}`);
+                } else {
+                    console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
 				}
 			} else if (menungso == "Newbie") {
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
@@ -239,7 +283,7 @@ async function createExcel() {
 					let padress = pool_address
 					let apimuk = apimu
 					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
-					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
+					worksheet.cell(cellIndex, 13).string(`${reqpass}`);
 					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
 				} else {
 					console.log("-----------");
@@ -273,6 +317,7 @@ async function createExcel() {
 	worksheet.cell(3, 9).string("rIC3_delegation");
 	worksheet.cell(3, 10).string("rIC_all_delegation");
 	worksheet.cell(3, 11).string("reward_all_delegation");
+    worksheet.cell(3, 12).string("unlock_balance");
 	worksheet.cell(3, 12).string("SendTX");
         if (d_pool) {
 		d_pool.forEach(async (addr, addr_index) => {
@@ -287,7 +332,7 @@ async function createExcel() {
 			worksheet.cell(cellIndex, 3).string(`${d_age}`);
 			let stake_all = 0;
 			let stake_IC = 0;
-			console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
+		//	console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
 			let d_reward = await pool_reward(paddress, epoch);
 				d_reward.forEach(async (reward, reward_index) => {
 					stake_all += parseFloat(reward.stake);
@@ -330,15 +375,31 @@ async function createExcel() {
 				worksheet.cell(cellIndex, 10).string((parseFloat(stake_IC / 20 ) * 80).toFixed(2));
 				worksheet.cell(cellIndex, 11).string((parseFloat(stake_all / 20 ) * 80).toFixed(2));
 				
-				if (send_stats == true) {
+                if (send_stats == true) {
+                    d_unlock.forEach(async (reason, reason_index) => {
+                        setTimeout(async function () {
+                            if (reason.reason == "VerifiedStake") {
+                                stake_unlock = await parseFloat(reason.stakeNew);
+                                let stake_send = ((parseFloat((stake_unlock / 22) * 82) * 79 / 100).toFixed(2));
+                                let padress = pool_address
+                                let apimuk = apimu
+                                let reqUNpass = await send_gate(padress, stake_send, apimuk, paddress);
+                                worksheet.cell(cellIndex, 12).string(`${stake_send}`);
+                                worksheet.cell(cellIndex, 14).string(`${reqUNpass}`);
+                                console.log(`reason ${reason.reason} - stake ${stake_unlock} \n${paddress} - unlock balance ${stake_send} IDNA \nTX = ${reqUNpass}`);
+                            } else {
+                            }
+                            workbook.write('excel3.xlsx');
+                        }, 2500 * reason_index);
+                    }); 
 					let stake_send = ((parseFloat(stake_all / 20 ) * 80).toFixed(2));
 					let padress = pool_address
 					let apimuk = apimu
 					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
-					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
-					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
+					worksheet.cell(cellIndex, 13).string(`${reqpass}`);
+                    console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}\nSending ${stake_send} IDNA - \nTX = ${reqpass}`);
 				} else {
-					console.log("-----------");
+                    console.log(`Checking : ${menungso} - ${paddress} - ${addr_index + 1} out of ${d_pool.length}`);
 				}
 			} else if (menungso == "Newbie") {
 			worksheet.cell(cellIndex, 1).string(`${paddress}`);
@@ -395,7 +456,7 @@ async function createExcel() {
 					let padress = pool_address
 					let apimuk = apimu
 					let reqpass = await send_gate(padress, stake_send, apimuk, paddress);
-					worksheet.cell(cellIndex, 12).string(`${reqpass}`);
+					worksheet.cell(cellIndex, 13).string(`${reqpass}`);
 					console.log(`Sending ${stake_send} IDNA - TX = ${reqpass}`)
 				} else {
 					console.log("-----------");

@@ -1,5 +1,7 @@
 {
 	"pool_pubaddress": ["<address -here>"],
 	"stats": false,
+	"node": "127.0.0.1",
+	"port": "9010",
 	"api": "<yourapi>"
 }
